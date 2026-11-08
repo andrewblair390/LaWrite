@@ -2,5 +2,6 @@ node_modules/
 .next/
 .venv-ocr/
 .cache/
+.data/
 __pycache__/
 *.py[cod]

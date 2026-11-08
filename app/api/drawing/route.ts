@@ -4,7 +4,7 @@ import { drawingStore, Drawing } from '@/lib/drawingStore'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  return NextResponse.json(drawingStore.get())
+  return NextResponse.json(await drawingStore.get())
 }
 
 export async function POST(req: Request) {
@@ -20,9 +20,10 @@ export async function POST(req: Request) {
       updatedAt: new Date().toISOString(),
       canvasSize: body.canvasSize,
       selection: body.selection ?? null,
+      selectionId: body.selectionId ?? null,
     }
 
-    drawingStore.set(drawing)
+    await drawingStore.set(drawing)
 
     return NextResponse.json({ ok: true, drawing })
   } catch {

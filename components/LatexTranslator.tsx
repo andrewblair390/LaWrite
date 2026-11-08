@@ -1,7 +1,38 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Drawing } from '@/lib/drawingStore'
+
+type MathJaxWindow = Window & { MathJax?: { typesetPromise?: (elements?: HTMLElement[]) => Promise<void>; typesetClear?: (elements?: HTMLElement[]) => void; startup?: { typeset?: boolean; promise?: Promise<unknown> }; tex?: Record<string, unknown> } }
+let mathJaxLoad: Promise<void> | null = null
+
+function loadMathJax() {
+  const host = window as MathJaxWindow
+  if (host.MathJax?.typesetPromise) return Promise.resolve()
+  if (mathJaxLoad) return mathJaxLoad
+  host.MathJax = { ...(host.MathJax ?? {}), startup: { ...(host.MathJax?.startup ?? {}), typeset: false }, tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } }
+  mathJaxLoad = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>('script[data-mathjax]')
+    const script = existing ?? document.createElement('script')
+    const timeout = window.setTimeout(() => reject(new Error('Preview renderer timed out.')), 15000)
+    script.onload = () => {
+      const ready = () => { window.clearTimeout(timeout); resolve() }
+      if (host.MathJax?.startup?.promise) void host.MathJax.startup.promise.then(ready, reject)
+      else if (host.MathJax?.typesetPromise) ready()
+      else { window.clearTimeout(timeout); reject(new Error('Preview renderer did not initialize.')) }
+    }
+    script.onerror = () => { window.clearTimeout(timeout); reject(new Error('Preview renderer could not load.')) }
+    if (!existing) { script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js'; script.async = true; script.dataset.mathjax = 'true'; document.head.appendChild(script) }
+  }).catch((error) => { mathJaxLoad = null; throw error })
+  return mathJaxLoad
+}
+
+function unwrapLatex(source: string) {
+  const value = source.trim()
+  const wrappers: [string, string][] = [['\\[', '\\]'], ['$$', '$$'], ['\\(', '\\)'], ['$', '$']]
+  const wrapper = wrappers.find(([start, end]) => value.startsWith(start) && value.endsWith(end))
+  return wrapper ? value.slice(wrapper[0].length, -wrapper[1].length).trim() : value
+}
 
 function makeDrawingImage(drawing: Drawing, selection: NonNullable<Drawing['selection']>): Promise<Blob> {
   if (!hasInkInSelection(drawing, selection)) return Promise.reject(new Error('There is no ink inside the selected area.'))
@@ -58,12 +89,26 @@ export default function LatexTranslator({ drawing }: { drawing: Drawing | null }
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [previewError, setPreviewError] = useState(false)
+  const previewRef = useRef<HTMLDivElement>(null)
+  const autoRequestIdRef = useRef<string | null>(null)
   const selection = drawing?.selection ?? null
   const selectionHasInk = Boolean(selection && drawing && hasInkInSelection(drawing, selection))
 
   useEffect(() => {
-    setLatex(''); setCopied(false); setError(null)
-  }, [drawing?.updatedAt])
+    const preview = previewRef.current
+    if (!preview || !latex.trim()) return
+    let cancelled = false
+    const host = window as MathJaxWindow
+    host.MathJax?.typesetClear?.([preview])
+    preview.textContent = `\\[${unwrapLatex(latex)}\\]`
+    setPreviewError(false)
+    void loadMathJax().then(() => {
+      if (cancelled) return
+      return (window as MathJaxWindow).MathJax?.typesetPromise?.([preview])
+    }).catch(() => { if (!cancelled) setPreviewError(true) })
+    return () => { cancelled = true; (window as MathJaxWindow).MathJax?.typesetClear?.([preview]) }
+  }, [latex])
 
   const translate = useCallback(async () => {
     if (!drawing || !selection || !selectionHasInk) return
@@ -81,11 +126,24 @@ export default function LatexTranslator({ drawing }: { drawing: Drawing | null }
     } finally { setLoading(false) }
   }, [drawing, selection, selectionHasInk])
 
+  useEffect(() => {
+    const selectionId = drawing?.selectionId
+    if (!selectionId) {
+      autoRequestIdRef.current = null
+      setLatex(''); setCopied(false); setError(null); setLoading(false)
+      return
+    }
+    if (autoRequestIdRef.current === selectionId) return
+    autoRequestIdRef.current = selectionId
+    setLatex(''); setCopied(false); setError(null)
+    void translate()
+  }, [drawing?.selectionId])
+
   const copy = async () => {
     if (!latex) return
     try { await navigator.clipboard.writeText(latex); setCopied(true); window.setTimeout(() => setCopied(false), 1600) }
     catch { setError('Clipboard access was blocked. Select and copy the LaTeX manually.') }
   }
 
-  return <><p className="translation-intro">Draw a box around one expression in Select area mode. Pix2Text will only receive the ink inside that box.</p><button className="primary-button" style={{ width: '100%' }} onClick={() => void translate()} disabled={loading || !selectionHasInk}>{loading ? 'Recognizing handwriting…' : 'Recognize selected area'}</button>{error && <div className="translation-error" role="alert">{error}</div>}{latex ? <><div className="panel-head" style={{ padding: '0', marginTop: 22, border: 0 }}><strong>EDITABLE LATEX</strong><button className="quiet-button" onClick={() => void copy()}>{copied ? 'Copied' : 'Copy source'}</button></div><textarea className="latex-output" value={latex} onChange={(event) => setLatex(event.target.value)} aria-label="Editable LaTeX output" spellCheck={false}/><div className="mock-note">Check the recognized source before using it. Handwriting recognition can make mistakes.</div></> : !error && <div className="empty-state" style={{ minHeight: 210 }}><div>{!selection ? 'Select area mode on the paper, then drag a box around one expression.' : selectionHasInk ? 'The selected expression will appear here.' : 'The box does not contain any ink yet.'}</div></div>}</>
+  return <><p className="translation-intro">Draw a box around one expression in Select area mode. Pix2Text will translate each new box automatically.</p>{loading && <div className="translation-intro" role="status">Recognizing selected area…</div>}{error && <div className="translation-error" role="alert">{error}<button className="quiet-button" style={{ marginLeft: 10 }} onClick={() => void translate()}>Try again</button></div>}{latex ? <><div className="panel-head" style={{ padding: '0', marginTop: 22, border: 0 }}><strong>EDITABLE LATEX</strong><button className="quiet-button" onClick={() => void copy()}>{copied ? 'Copied' : 'Copy source'}</button></div><textarea className="latex-output" value={latex} onChange={(event) => setLatex(event.target.value)} aria-label="Editable LaTeX output" spellCheck={false}/><div className="math-preview-wrap"><div className="math-preview-label">RENDERED PREVIEW</div><div className="math-preview" aria-label="Rendered equation preview"><div ref={previewRef}>{previewError ? 'The preview needs an internet connection to load its free MathJax renderer.' : 'Loading equation preview…'}</div></div></div><div className="mock-note">Check the recognized source before using it. Handwriting recognition can make mistakes.</div></> : !loading && !error && <div className="empty-state" style={{ minHeight: 210 }}><div>{!selection ? 'Select area mode on the paper, then drag a box around one expression.' : selectionHasInk ? 'The selected expression will appear here.' : 'The box does not contain any ink yet.'}</div></div>}</>
 }

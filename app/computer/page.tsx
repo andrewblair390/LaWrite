@@ -29,14 +29,33 @@ export default function ComputerPage() {
   const [exportError, setExportError] = useState(false)
 
   useEffect(() => {
-    fetch('/api/drawing').then((response) => response.json()).then((data: Drawing | null) => setDrawing(data)).catch(() => setConnected(false))
+    let stopped = false
+    let polling = false
+    const receiveDrawing = (data: Drawing | null) => {
+      if (!data) return
+      setDrawing((current) => current && current.updatedAt > data.updatedAt ? current : data)
+    }
+    const refresh = async () => {
+      if (stopped || polling) return
+      polling = true
+      try {
+        const response = await fetch('/api/drawing', { cache: 'no-store' })
+        if (!response.ok) throw new Error('Drawing sync failed')
+        receiveDrawing(await response.json() as Drawing | null)
+        setConnected(true)
+      } catch {
+        if (!stopped) setConnected(false)
+      } finally { polling = false }
+    }
+    void refresh()
+    const poll = window.setInterval(() => { void refresh() }, 750)
     const stream = new EventSource('/api/drawing/stream')
     stream.addEventListener('connected', () => setConnected(true))
     stream.addEventListener('drawing', (event: MessageEvent) => {
-      try { setDrawing(JSON.parse(event.data) as Drawing) } catch { /* Ignore malformed events and keep the last valid drawing. */ }
+      try { receiveDrawing(JSON.parse(event.data) as Drawing) } catch { /* Ignore malformed events and keep the last valid drawing. */ }
     })
-    stream.onerror = () => setConnected(false)
-    return () => stream.close()
+    stream.onerror = () => { /* The polling fallback continues to sync if the event stream is unavailable. */ }
+    return () => { stopped = true; window.clearInterval(poll); stream.close() }
   }, [])
 
   const clearDrawing = async () => {
