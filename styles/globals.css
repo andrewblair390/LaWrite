@@ -15,3 +15,76 @@
 .paper-surface.is-erasing canvas{cursor:cell}.math-preview-wrap{margin-top:16px}.math-preview-label{font:10px var(--mono);letter-spacing:.08em;color:#85897e}.math-preview{display:grid;place-items:center;min-height:96px;margin-top:8px;padding:18px;background:#fffefa;border:1px solid var(--line);border-radius:8px;overflow:auto;color:var(--ink);font-size:1.12rem}.math-preview .mjx-container{max-width:100%;overflow-x:auto;overflow-y:hidden}
 .computer-header .workspace-title small{display:none}.computer-workarea{padding-top:20px}.computer-workarea>.section-kicker,.computer-workarea>.mobile-footer{display:none}.computer-workarea .computer-grid{margin-top:0}.computer-workarea .panel-head{height:46px}.computer-workarea .review-canvas{height:min(76vh,760px)}.computer-workarea .translation-box{padding:16px}.computer-workarea .translation-intro{margin-bottom:12px}
 @media(max-width:800px){.tablet-main{padding:0 6px 8px}.tablet-canvas-panel .canvas-wrap{padding:4px}.tablet-canvas-panel .canvas-tools{padding:8px 9px}.tablet-canvas-panel .note-tools{gap:7px}.tablet-canvas-panel .note-tools .sync-note{width:auto;margin:0 0 0 4px}.guard-toggle{padding:7px}.computer-workarea .review-canvas{height:56vh;min-height:280px}.computer-workarea .computer-grid{margin-top:0}}
+
+/* ── Projector (student-facing board) ───────────────────────────────── */
+.projector{position:relative;height:100dvh;width:100vw;overflow:hidden;background:#fffefa}
+.board-view{position:absolute;inset:0}
+.board-canvas{display:block;width:100%;height:100%}
+.board-outline{position:absolute;border-radius:4px;pointer-events:none;border:1.5px dashed #a7b473;background:rgba(190,203,116,.08)}
+.board-outline.is-pending{border-color:#c6a86a;background:rgba(214,178,110,.12)}
+.board-outline.is-failed{border-color:#c98b7c;background:rgba(201,139,124,.12)}
+.board-typeset{position:absolute;display:flex;align-items:center;pointer-events:none;overflow:visible;color:#14160f}
+.board-typeset>div{width:100%}
+.board-typeset mjx-container{margin:0!important}
+.board-typeset-raw{font:14px var(--mono);color:#6d7064}
+
+/* Control panel: lives over the board, never part of what students read. */
+.panel-tab{position:absolute;right:14px;bottom:14px;width:40px;height:40px;border:1px solid var(--line);
+  border-radius:50%;background:#fffefaee;color:#6b6f63;font-size:17px;opacity:.35;transition:opacity .18s}
+.panel-tab:hover,.panel-tab:focus-visible{opacity:1}
+.control-panel{position:absolute;top:0;right:0;height:100%;width:min(400px,92vw);display:flex;flex-direction:column;
+  background:#fbfaf4;border-left:1px solid var(--line);box-shadow:-8px 0 26px #2a2d2210;
+  transform:translateX(100%);transition:transform .22s ease;z-index:5}
+.control-panel.is-open{transform:translateX(0)}
+.control-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.control-head strong{font-size:13px}
+.control-section{padding:14px 16px;border-bottom:1px solid #efeee7}
+.control-grow{flex:1;min-height:0;overflow:auto;border-bottom:0}
+.control-footer{border-top:1px solid var(--line);border-bottom:0}
+.control-label{font:10px var(--mono);letter-spacing:.09em;color:#85897e;text-transform:uppercase;margin-bottom:9px}
+.control-hint{font-size:11px;line-height:1.6;color:var(--muted);margin:10px 0 0}
+.control-hint kbd{font:10px var(--mono);background:#efeee7;padding:2px 5px;border-radius:3px;color:#55594f}
+.control-modes{display:grid;grid-template-columns:1fr 1fr}
+.control-modes .mode-button{justify-content:center}
+
+.region-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.region-row{border:1px solid var(--line);border-radius:9px;padding:10px;background:#fffefa}
+.region-row.is-pending{border-color:#e0cfa8}
+.region-row.is-failed{border-color:#e6cac2}
+.region-row-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.region-index{width:20px;height:20px;display:grid;place-items:center;border-radius:5px;background:#eef1e2;
+  color:#5d6b36;font:10px var(--mono)}
+.region-status{font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#85897e}
+.region-status.is-ready{color:#5f7038}
+.region-status.is-pending{color:#9a7b3d}
+.region-status.is-failed{color:#9c5243}
+.region-input{width:100%;min-height:54px;resize:vertical;border:1px solid #e3e1d8;border-radius:7px;padding:9px;
+  background:#28332b;color:#d8e5a1;font:12px/1.6 var(--mono);outline:none}
+.region-input:focus{border-color:#9cad56;box-shadow:0 0 0 2px #9cad5626}
+.region-error{margin-top:8px;font-size:11px;line-height:1.5;color:#8c3b2d}
+
+/* Boxes drawn on the tablet, coloured by recognition state. */
+.selection-overlay .region-rect{fill:rgba(190,203,116,.13);stroke:#839149}
+.selection-overlay .region-rect.is-pending{fill:rgba(214,178,110,.15);stroke:#b58f4d}
+.selection-overlay .region-rect.is-failed{fill:rgba(201,139,124,.14);stroke:#b4705f}
+
+/* ── Tablet equation editor sheet ───────────────────────────────────── */
+.sheet-backdrop{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;
+  background:#2a2d2244;backdrop-filter:blur(2px)}
+.region-sheet{width:min(680px,100%);max-height:88dvh;overflow:auto;background:#fbfaf4;
+  border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;padding:16px;
+  box-shadow:0 -10px 30px #2a2d2222}
+.sheet-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sheet-head strong{font-size:14px}
+.sheet-input{width:100%;min-height:92px;resize:vertical;border:1px solid #3d4940;border-radius:8px;padding:12px;
+  background:#28332b;color:#d8e5a1;font:14px/1.7 var(--mono);outline:none}
+.sheet-input:focus{border-color:#9cad56;box-shadow:0 0 0 2px #9cad5626}
+.sheet-preview-label{font:10px var(--mono);letter-spacing:.08em;color:#85897e;margin:14px 0 6px}
+.sheet-preview{display:grid;place-items:center;min-height:84px;padding:14px;background:#fffefa;
+  border:1px solid var(--line);border-radius:8px;overflow:auto;font-size:1.1rem}
+.sheet-actions{display:flex;align-items:center;gap:9px;margin-top:16px}
+
+@media(max-width:800px){
+  .control-panel{width:100vw}
+  .region-sheet{border-radius:12px 12px 0 0;padding:13px}
+}
