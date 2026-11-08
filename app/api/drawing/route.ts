@@ -19,6 +19,7 @@ export async function POST(req: Request) {
       strokes: body.strokes,
       updatedAt: new Date().toISOString(),
       canvasSize: body.canvasSize,
+      selection: body.selection ?? null,
     }
 
     drawingStore.set(drawing)

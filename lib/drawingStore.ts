@@ -7,10 +7,12 @@ export type Stroke = {
   width: number
   points: Point[]
 }
+export type Selection = { x: number; y: number; width: number; height: number }
 export type Drawing = {
   strokes: Stroke[]
   updatedAt: string
   canvasSize?: { width: number; height: number }
+  selection?: Selection | null
 }
 
 const emitter = new EventEmitter()

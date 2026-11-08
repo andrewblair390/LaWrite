@@ -29,6 +29,17 @@ export default function DrawingDisplay({ drawing }: { drawing: Drawing }) {
       }
       ctx.restore()
     })
+    if (drawing.selection) {
+      const box = drawing.selection
+      ctx.save()
+      ctx.fillStyle = 'rgba(188, 203, 104, 0.12)'
+      ctx.strokeStyle = '#84934a'
+      ctx.lineWidth = 1.5
+      ctx.setLineDash([7, 5])
+      ctx.fillRect(box.x * sx, box.y * sy, box.width * sx, box.height * sy)
+      ctx.strokeRect(box.x * sx, box.y * sy, box.width * sx, box.height * sy)
+      ctx.restore()
+    }
   }, [drawing])
 
   return <canvas ref={canvasRef} aria-label="Live drawing preview" />
