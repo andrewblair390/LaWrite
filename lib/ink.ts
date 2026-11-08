@@ -118,6 +118,8 @@ type MathJaxWindow = Window & {
     typesetClear?: (elements?: HTMLElement[]) => void
     startup?: { typeset?: boolean; promise?: Promise<unknown> }
     tex?: Record<string, unknown>
+    loader?: Record<string, unknown>
+    options?: Record<string, unknown>
   }
 }
 
@@ -129,6 +131,15 @@ export function loadMathJax() {
   if (mathJaxLoad) return mathJaxLoad
   host.MathJax = {
     ...(host.MathJax ?? {}),
+    // The board renders LaTeX that arrives over an unauthenticated endpoint,
+    // so anything on the network can put a string here. MathJax's autoload
+    // pulls in the `html` package on \href, which would turn that string into
+    // a clickable javascript: link on the projector. ui/safe blocks URLs,
+    // classes, ids and inline styles outright — equations never need them.
+    loader: { load: ['ui/safe'] },
+    options: {
+      safeOptions: { allow: { URLs: 'none', classes: 'none', cssIDs: 'none', styles: 'none' } },
+    },
     startup: { ...(host.MathJax?.startup ?? {}), typeset: false },
     tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
   }
