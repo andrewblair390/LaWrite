@@ -1,0 +1,4 @@
+# Pix2Text and its optional local HTTP service dependencies.
+pix2text[serve]
+# cnstd 1.2.8 imports resolve_model_key, renamed by rapidocr 3.10.
+rapidocr>=3.9.1,<3.10
