@@ -65,7 +65,6 @@ export default function ComputerPage() {
   }, [])
 
   const regions: Region[] = drawing?.regions ?? []
-  const readyCount = regions.filter((r) => r.status === 'ready').length
 
   const reRecognize = useCallback(async (region: Region) => {
     const current = drawingRef.current
@@ -104,15 +103,11 @@ export default function ComputerPage() {
       <aside className={`control-panel ${panelOpen ? 'is-open' : ''}`} aria-hidden={!panelOpen}>
         <div className="control-head">
           <img className="brand-mark" src="/lawrite.png" alt="Lawrite" width={1606} height={629} />
-          <span className="status-pill">
-            <span className="status-dot" style={{ background: connected ? '#91a646' : '#c18c53' }} />
-            {connected ? 'LIVE' : 'RECONNECTING'}
-          </span>
+          <span className="toolbar-spacer" />
           <button className="quiet-button" onClick={() => setPanelOpen(false)} aria-label="Hide control panel">Hide</button>
         </div>
 
         <div className="control-section">
-          <div className="control-label">Projector shows</div>
           <div className="mode-switch control-modes" role="group" aria-label="Board mode">
             <button className={`mode-button ${mode === 'ink' ? 'active' : ''}`} onClick={() => setMode('ink')} aria-pressed={mode === 'ink'}>
               ✎ <span>Handwriting</span>
@@ -127,10 +122,6 @@ export default function ComputerPage() {
         </div>
 
         <div className="control-section control-grow">
-          <div className="control-label">
-            Equations {regions.length ? `· ${readyCount}/${regions.length} ready` : ''}
-          </div>
-
           {!regions.length && (
             <p className="control-hint">
               Box an expression on the tablet and it appears here, recognized automatically.
@@ -142,9 +133,6 @@ export default function ComputerPage() {
               <li key={region.id} className={`region-row is-${region.status}`}>
                 <div className="region-row-head">
                   <span className="region-index">{index + 1}</span>
-                  <span className={`region-status is-${region.status}`}>
-                    {region.status === 'pending' ? 'reading…' : region.status === 'failed' ? 'failed' : 'ready'}
-                  </span>
                   <span className="toolbar-spacer" />
                   <button className="quiet-button" disabled={busyId === region.id} onClick={() => void reRecognize(region)}>
                     {busyId === region.id ? '…' : 'Redo'}

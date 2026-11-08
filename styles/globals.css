@@ -110,3 +110,12 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;-moz-user-selec
 .splash-mark{width:min(260px,46vw);height:auto;opacity:.9}
 .splash p{margin:0;color:var(--muted);font:11px var(--mono);letter-spacing:.09em}
 @media(max-width:800px){.tablet-topbar .brand-mark{height:15px}.doc-name{padding-left:9px}}
+
+/* The small uppercase mono labels are gone; only a real sync failure speaks
+   up now, and it does so in the interface face rather than that style. */
+.sync-warning{font-size:11px;font-weight:600;color:#8c3b2d;white-space:nowrap}
+/* Remaining mono is code, not labels: the number badge and key hints read as
+   interface, so move them onto the sans face too. */
+.region-index{font:600 10px var(--sans)}
+.control-hint kbd{font:600 10px var(--sans)}
+.splash p{font:12px var(--sans);letter-spacing:0}

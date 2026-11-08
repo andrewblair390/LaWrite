@@ -437,15 +437,10 @@ export default function DrawingCanvas() {
   }
 
   const editing = regions.find((region) => region.id === editingId) ?? null
-  const readyCount = regions.filter((region) => region.status === 'ready').length
-  const pendingCount = regions.filter((region) => region.status === 'pending').length
 
-  const statusText = syncError ? 'SYNC ISSUE'
-    : pendingCount ? `READING ${pendingCount}…`
-    : mode === 'select' ? (regions.length ? 'DRAG A NEW BOX · TAP A BOX TO EDIT' : 'DRAG A BOX AROUND THE MATH')
-    : mode === 'erase' ? 'DRAG OVER INK TO ERASE'
-    : regions.length ? `${readyCount}/${regions.length} EQUATIONS READY`
-    : lastSaved ? `SAVED ${new Date(lastSaved).toLocaleTimeString()}` : 'READY TO WRITE'
+  // Only surface a genuine problem. Losing the laptop mid-lesson has to be
+  // visible, but the routine running commentary was noise.
+  const statusText = syncError ? 'Not syncing' : null
 
   return <>
     <div className="canvas-wrap">
@@ -479,7 +474,7 @@ export default function DrawingCanvas() {
       <span className="toolbar-spacer" />
       <button className="quiet-button" onClick={undo} disabled={!undoCount}>Undo</button>
       <button className="quiet-button" onClick={clear}>Clear</button>
-      <span className="sync-note">{statusText}</span>
+      {statusText && <span className="sync-warning">{statusText}</span>}
     </div>
 
     {editing && (
@@ -524,9 +519,6 @@ function RegionSheet({ region, onClose, onSave, onRedo, onDelete }: {
       <div className="region-sheet" role="dialog" aria-label="Edit equation">
         <div className="sheet-head">
           <strong>Edit equation</strong>
-          <span className={`region-status is-${region.status}`}>
-            {region.status === 'pending' ? 'reading…' : region.status === 'failed' ? 'failed' : 'ready'}
-          </span>
           <span className="toolbar-spacer" />
           <button className="quiet-button" onClick={onClose}>Done</button>
         </div>
@@ -542,7 +534,6 @@ function RegionSheet({ region, onClose, onSave, onRedo, onDelete }: {
           aria-label="LaTeX source"
         />
 
-        <div className="sheet-preview-label">PREVIEW</div>
         <div className="sheet-preview">
           {previewFailed ? <span className="board-typeset-raw">{draft}</span> : <div ref={previewRef} />}
         </div>
