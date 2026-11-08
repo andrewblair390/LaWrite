@@ -59,8 +59,6 @@ export default function DrawingCanvas() {
   const [regions, setRegions] = useState<Region[]>([])
   const [draftSelection, setDraftSelection] = useState<Selection | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [lastSaved, setLastSaved] = useState<string | null>(null)
-  const [syncError, setSyncError] = useState(false)
   const [strokeCount, setStrokeCount] = useState(0)
   const [undoCount, setUndoCount] = useState(0)
 
@@ -110,8 +108,7 @@ export default function DrawingCanvas() {
       try {
         const response = await fetch('/api/drawing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
         if (!response.ok) throw new Error('Sync failed')
-        setLastSaved(new Date().toISOString()); setSyncError(false)
-      } catch { setSyncError(true) }
+      } catch { /* Nothing is surfaced on the board; the next stroke republishes. */ }
       finally { inFlightRef.current -= 1 }
     })
     return publishQueueRef.current
@@ -438,9 +435,6 @@ export default function DrawingCanvas() {
 
   const editing = regions.find((region) => region.id === editingId) ?? null
 
-  // Only surface a genuine problem. Losing the laptop mid-lesson has to be
-  // visible, but the routine running commentary was noise.
-  const statusText = syncError ? 'Not syncing' : null
 
   return <>
     <div className="canvas-wrap">
@@ -474,7 +468,6 @@ export default function DrawingCanvas() {
       <span className="toolbar-spacer" />
       <button className="quiet-button" onClick={undo} disabled={!undoCount}>Undo</button>
       <button className="quiet-button" onClick={clear}>Clear</button>
-      {statusText && <span className="sync-warning">{statusText}</span>}
     </div>
 
     {editing && (
