@@ -1,44 +1,19 @@
-# Lawrite
+## Inspiration
+From struggling with tedious latex writing for math in our discrete math class, we wanted a solution, a better way to note take and complete latex for our assignments. 
 
-Handwritten maths, typeset live for the room to read.
+## What it does
+Lawrite is a notetaking system that allows the user to write out notes on their mobile device/tablet and have it easily and accurately converted into latex in for easy their personal use on their computer. The real benefit is the easy sharing of handwriting to latex on your computer without having to deal with any middle step. It makes things super easy
 
-Lawrite uses a local Pix2Text service for handwritten math recognition. No OCR API key or paid service is required. The first recognition may take longer while Pix2Text downloads its model weights.
+## How we built it
+We built LaWrite. as a shared math workspace with Next.js and React. A pressure-sensitive drawing canvas lets you write equations on a tablet, while the computer view mirrors the page and supports selecting an expression for recognition. 
 
-## Run locally
+We use a self hosted ML model pix2text api to convert selected handwriting into editable LaTeX, then render a preview with MathJax. Drawing updates are saved through the app’s API so both views can stay in sync for the users use.
 
-Use Python 3.12 (available as `python3.12` on Fedora) and Node.js:
+## Challenges we ran into
+We spent a long time, trying to figure out how to actually convert handwriting into latex. It became our largest challenge. There were a few options but many were expensive or outdated. We ended up with this public model "pix2text" which is running locally on our computer. The actual web functionality is fairly simple.
 
-```bash
-cd latech
-python3.12 -m venv .venv-ocr
-source .venv-ocr/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements-ocr.txt
-npm run ocr:serve
-```
+## Accomplishments that we're proud of
+Learning about how to run our own model and use it in an api. We are very proud of making an app that regardless of how we do in the competition, we will use on our own work.
 
-Keep that terminal running. In a second terminal, start the app:
-
-```bash
-cd latech
-npm run dev
-```
-
-Open `/tablet` to draw and `/computer` for the projector view; `/` sends each device to the right one. Press **Recognize handwriting** to send a cropped image of the current ink to the local Pix2Text service. The LaTeX result can be edited before copying.
-
-The Next.js server expects Pix2Text at `http://127.0.0.1:8503/pix2text`. To use another address, set `PIX2TEXT_URL` in the environment where Next.js runs.
-
-### Repair an existing environment
-
-The OCR startup script includes a small compatibility alias for installations where CnSTD 1.2.8 is paired with RapidOCR 3.10. On a machine with package-index access, you can also reinstall the compatible RapidOCR 3.9 release line:
-
-```bash
-.venv-ocr/bin/python -m pip install 'rapidocr>=3.9.1,<3.10'
-npm run ocr:serve
-```
-
-## Notes
-
-- Pix2Text is open source, but it runs locally and uses CPU/GPU and memory. Initial installation downloads Python packages; first service startup downloads model weights and needs internet access. Model caches go in the ignored `.cache/` directory in this project.
-- Recognition runs on a cropped image of the whole canvas. Multiple equations may be returned together; review the output before using it.
-- `requirements-ocr.txt` installs the optional Pix2Text HTTP service dependencies with `pix2text[serve]`.
+## What's next for LaWrite
+First thing is to make a complete mobile app with file storage and complete the notes aspect of it. Then we want to add more math features such as automatic graphing and markdown as well for simpler docs. The last feature is just to be able to upload an arbitrary pdf and convert it to latex, which would be very difficult and outside of thee scope of our project for these 2 days.
