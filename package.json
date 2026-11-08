@@ -7,7 +7,9 @@
     "ocr:serve": ".venv-ocr/bin/python scripts/p2t_compat.py serve -l en -H 127.0.0.1 -p 8503",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:https": "next dev -H 0.0.0.0 -p 3000 --experimental-https --experimental-https-key certs/server.key --experimental-https-cert certs/server.crt --experimental-https-ca certs/ca.crt",
+    "serve:ca": "python3 -I scripts/serve_ca.py certs/ca.crt"
   },
   "dependencies": {
     "next": "^14.2.35",
