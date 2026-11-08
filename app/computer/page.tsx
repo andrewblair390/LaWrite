@@ -103,7 +103,7 @@ export default function ComputerPage() {
 
       <aside className={`control-panel ${panelOpen ? 'is-open' : ''}`} aria-hidden={!panelOpen}>
         <div className="control-head">
-          <strong>Control panel</strong>
+          <img className="brand-mark" src="/lawrite.png" alt="Lawrite" width={1606} height={629} />
           <span className="status-pill">
             <span className="status-dot" style={{ background: connected ? '#91a646' : '#c18c53' }} />
             {connected ? 'LIVE' : 'RECONNECTING'}

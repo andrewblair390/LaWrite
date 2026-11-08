@@ -240,7 +240,31 @@ export default function DrawingCanvas() {
         }
       }
       if (event.pointerType === 'touch' && palmGuard && penDetectedRef.current) return
-      if (activePointerIdRef.current !== null) return
+      if (activePointerIdRef.current !== null) {
+        // A release for the previous pointer never arrived. Pointer capture
+        // normally guarantees it, but capture can be lost — a stylus leaving
+        // the digitizer abruptly is the common case. Without this check the id
+        // stays latched and every later stroke is dropped by this very gate,
+        // which reads as "strokes sometimes don't register".
+        // Not holding capture for it means it is no longer a live pointer,
+        // whether capture was lost or never granted. A genuine second finger
+        // is still blocked, because capture for the first one is held.
+        if (canvas.hasPointerCapture(activePointerIdRef.current)) return
+        const abandoned = activeRef.current
+        if (abandoned && abandoned.points.length) {
+          // Keep the ink that was already drawn rather than discarding it.
+          undoStackRef.current = [...undoStackRef.current, strokesRef.current]
+          setUndoCount(undoStackRef.current.length)
+          strokesRef.current = [...strokesRef.current, abandoned]
+          setStrokeCount(strokesRef.current.length)
+          void publish(strokesRef.current)
+        }
+        activeRef.current = null
+        activePointerIdRef.current = null
+        activePointerTypeRef.current = null
+        selectionStartRef.current = null
+        setDraftSelection(null)
+      }
       if (event.pointerType === 'touch' && !event.isPrimary) return
       event.preventDefault()
       try { canvas.setPointerCapture(event.pointerId) } catch { /* Continue drawing if pointer capture is unavailable. */ }
@@ -355,7 +379,16 @@ export default function DrawingCanvas() {
     }
     canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move)
     canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', cancel); canvas.addEventListener('lostpointercapture', cancel)
-    return () => { canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', cancel); canvas.removeEventListener('lostpointercapture', cancel) }
+    // Second line of defence: if capture is lost the release is delivered
+    // somewhere other than the canvas, so watch the window too. `up` ignores
+    // ids it does not recognise, which makes the duplicate delivery in the
+    // normal case a no-op.
+    window.addEventListener('pointerup', up); window.addEventListener('pointercancel', cancel)
+    return () => {
+      canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move)
+      canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', cancel); canvas.removeEventListener('lostpointercapture', cancel)
+      window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', cancel)
+    }
   }, [color, width, mode, palmGuard, drawStroke, publish, redraw, addRegion])
 
   const clear = () => {

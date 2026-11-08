@@ -1,13 +1,15 @@
-# ink. — Math workspace
+# Lawrite
 
-The Next.js app uses a local Pix2Text service for handwritten math recognition. No OCR API key or paid service is required. The first recognition may take longer while Pix2Text downloads its model weights.
+Handwritten maths, typeset live for the room to read.
+
+Lawrite uses a local Pix2Text service for handwritten math recognition. No OCR API key or paid service is required. The first recognition may take longer while Pix2Text downloads its model weights.
 
 ## Run locally
 
 Use Python 3.12 (available as `python3.12` on Fedora) and Node.js:
 
 ```bash
-cd latex-draw-app
+cd latech
 python3.12 -m venv .venv-ocr
 source .venv-ocr/bin/activate
 python -m pip install --upgrade pip
@@ -18,11 +20,11 @@ npm run ocr:serve
 Keep that terminal running. In a second terminal, start the app:
 
 ```bash
-cd latex-draw-app
+cd latech
 npm run dev
 ```
 
-Open `/tablet` to draw and `/computer` to review. Press **Recognize handwriting** to send a cropped image of the current ink to the local Pix2Text service. The LaTeX result can be edited before copying.
+Open `/tablet` to draw and `/computer` for the projector view; `/` sends each device to the right one. Press **Recognize handwriting** to send a cropped image of the current ink to the local Pix2Text service. The LaTeX result can be edited before copying.
 
 The Next.js server expects Pix2Text at `http://127.0.0.1:8503/pix2text`. To use another address, set `PIX2TEXT_URL` in the environment where Next.js runs.
 

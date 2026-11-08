@@ -96,3 +96,17 @@
    to select and edit LaTeX in them. */
 body{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea,[contenteditable="true"]{-webkit-user-select:text;-moz-user-select:text;user-select:text}
+
+/* ── Lawrite wordmark ───────────────────────────────────────────────── */
+/* The artwork is already the ink colour (#22251f) on transparency, so it
+   needs no filter — only a height, with width:auto preserving its ratio. */
+.brand-mark{height:19px;width:auto;display:block;flex:0 0 auto}
+.tablet-topbar .brand-mark{height:17px}
+.control-head .brand-mark{height:18px}
+.doc-name{font-size:13px;font-weight:600;color:#43463d;
+  padding-left:12px;margin-left:2px;border-left:1px solid var(--line)}
+.splash{min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:18px;background:var(--paper)}
+.splash-mark{width:min(260px,46vw);height:auto;opacity:.9}
+.splash p{margin:0;color:var(--muted);font:11px var(--mono);letter-spacing:.09em}
+@media(max-width:800px){.tablet-topbar .brand-mark{height:15px}.doc-name{padding-left:9px}}

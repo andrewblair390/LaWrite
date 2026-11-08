@@ -16,5 +16,10 @@ export default function Home() {
     router.replace(isTabletOS() ? '/tablet' : '/computer')
   }, [router])
 
-  return <main className="empty-state" style={{ minHeight: '100dvh' }}>Opening your workspace…</main>
+  return (
+    <main className="splash">
+      <img className="splash-mark" src="/lawrite.png" alt="Lawrite" width={1606} height={629} />
+      <p>Opening your workspace…</p>
+    </main>
+  )
 }

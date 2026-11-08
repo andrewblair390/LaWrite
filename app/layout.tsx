@@ -1,8 +1,8 @@
 import '../styles/globals.css'
 
 export const metadata = {
-  title: 'ink. — Math workspace',
-  description: 'A connected workspace for handwritten mathematics',
+  title: 'Lawrite',
+  description: 'Handwritten maths, typeset live for the room to read',
 }
 
 export default function RootLayout({
